@@ -6,6 +6,7 @@ import Throughput from './utils/Throughput';
 import ProvisionerLogging from './provisioning/ProvisionerLogging';
 import { Region } from './configuration/Region';
 import DefaultProvisioner from './configuration/DefaultProvisioner';
+import ClimbingProvisioner from './configuration/ClimbingProvisioner';
 import { invariant } from './Global';
 import type { TableProvisionedAndConsumedThroughput, ProvisionerConfig, AdjustmentContext } from './flow/FlowTypes';
 
@@ -20,7 +21,12 @@ export default class Provisioner extends ProvisionerConfigurableBase {
   async getTableNamesAsync(): Promise<string[]> {
 
     // Option 1 - All tables (Default)
-    return await this.db.listAllTableNamesAsync();
+    let tableLists = await this.db.listAllTableNamesAsync();
+
+    tableLists.splice(tableLists.indexOf("PropertyAnalyticsStats"),1);
+    tableLists.splice(tableLists.indexOf("AgentAnalyticsStats"),1);
+
+    return tableLists;
 
     // Option 2 - Hardcoded list of tables
     // return ['Table1', 'Table2', 'Table3'];
@@ -34,7 +40,7 @@ export default class Provisioner extends ProvisionerConfigurableBase {
   getTableConfig(data: TableProvisionedAndConsumedThroughput): ProvisionerConfig {
 
     // Option 1 - Default settings for all tables
-    return DefaultProvisioner;
+    return ClimbingProvisioner;
 
     // Option 2 - Bespoke table specific settings
     // return data.TableName === 'Table1' ? Climbing : Default;
